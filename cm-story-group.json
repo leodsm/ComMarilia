@@ -1,0 +1,313 @@
+{
+  "key": "group_cm_story_ptbr",
+  "title": "CM Story – Fonte & Conte\u00fado",
+  "fields": [
+    {
+      "key": "field_cm_source_pt",
+      "label": "Fonte do conte\u00fado",
+      "name": "cm_source",
+      "type": "radio",
+      "instructions": "Escolha de onde o JSON do story vir\u00e1.",
+      "required": 1,
+      "conditional_logic": 0,
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
+      "choices": {
+        "paste": "Colar JSON",
+        "file": "Arquivo .json",
+        "url": "URL remota",
+        "manual": "Preenchimento manual"
+      },
+      "default_value": "paste",
+      "return_format": "value",
+      "allow_null": 0,
+      "other_choice": 0,
+      "layout": "horizontal",
+      "save_other_choice": 0
+    },
+    {
+      "key": "field_cm_json_text_pt",
+      "label": "JSON (texto)",
+      "name": "cm_json_text",
+      "type": "textarea",
+      "instructions": "Cole aqui o JSON completo do story.",
+      "required": 0,
+      "conditional_logic": [
+        [
+          {
+            "field": "field_cm_source_pt",
+            "operator": "==",
+            "value": "paste"
+          }
+        ]
+      ],
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
+      "default_value": "",
+      "placeholder": "{\n  \"title\": \"...\",\n  \"slides\": []\n}",
+      "maxlength": "",
+      "rows": 12,
+      "new_lines": "",
+      "readonly": 0,
+      "disabled": 0
+    },
+    {
+      "key": "field_cm_json_file_pt",
+      "label": "JSON (arquivo)",
+      "name": "cm_json_file",
+      "type": "file",
+      "instructions": "Envie um arquivo .json contendo o story.",
+      "required": 0,
+      "conditional_logic": [
+        [
+          {
+            "field": "field_cm_source_pt",
+            "operator": "==",
+            "value": "file"
+          }
+        ]
+      ],
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
+      "uploader": "",
+      "return_format": "array",
+      "library": "all",
+      "min_size": "",
+      "max_size": "",
+      "mime_types": "json"
+    },
+    {
+      "key": "field_cm_json_url_pt",
+      "label": "JSON (URL remota)",
+      "name": "cm_json_url",
+      "type": "url",
+      "instructions": "Informe a URL que retorna o JSON do story.",
+      "required": 0,
+      "conditional_logic": [
+        [
+          {
+            "field": "field_cm_source_pt",
+            "operator": "==",
+            "value": "url"
+          }
+        ]
+      ],
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
+      "default_value": "",
+      "placeholder": "https://exemplo.com/story.json"
+    },
+    {
+      "key": "field_cm_payload_raw_pt",
+      "label": "Payload (raw)",
+      "name": "cm_payload_raw",
+      "type": "textarea",
+      "instructions": "C\u00f3pia do JSON normalizado (somente leitura).",
+      "required": 0,
+      "conditional_logic": 0,
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
+      "default_value": "",
+      "placeholder": "",
+      "maxlength": "",
+      "rows": 12,
+      "new_lines": "",
+      "readonly": 1,
+      "disabled": 0
+    },
+    {
+      "key": "field_cm_title_pt",
+      "label": "T\u00edtulo derivado",
+      "name": "cm_title",
+      "type": "text",
+      "instructions": "Preenchido automaticamente a partir do JSON.",
+      "required": 0,
+      "conditional_logic": 0,
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
+      "default_value": "",
+      "placeholder": "",
+      "prepend": "",
+      "append": "",
+      "maxlength": "",
+      "readonly": 1,
+      "disabled": 0
+    },
+    {
+      "key": "field_cm_cover_pt",
+      "label": "Capa derivada",
+      "name": "cm_cover",
+      "type": "url",
+      "instructions": "Preenchido automaticamente a partir do JSON.",
+      "required": 0,
+      "conditional_logic": 0,
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
+      "default_value": "",
+      "placeholder": "",
+      "readonly": 1,
+      "disabled": 0
+    },
+    {
+      "key": "field_cm_ratio_pt",
+      "label": "Propor\u00e7\u00e3o (ratio)",
+      "name": "cm_ratio",
+      "type": "text",
+      "instructions": "Preenchido automaticamente (ex.: 9:16).",
+      "required": 0,
+      "conditional_logic": 0,
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
+      "default_value": "",
+      "placeholder": "9:16",
+      "prepend": "",
+      "append": "",
+      "maxlength": "",
+      "readonly": 1,
+      "disabled": 0
+    },
+    {
+      "key": "field_cm_slides_count_pt",
+      "label": "Quantidade de slides",
+      "name": "cm_slides_count",
+      "type": "number",
+      "instructions": "Conta derivada do total de slides do JSON.",
+      "required": 0,
+      "conditional_logic": 0,
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
+      "default_value": "",
+      "placeholder": "",
+      "prepend": "",
+      "append": "",
+      "min": 0,
+      "max": "",
+      "step": "",
+      "readonly": 1,
+      "disabled": 0
+    },
+    {
+      "key": "field_cm_autoplay_pt",
+      "label": "Autoplay?",
+      "name": "cm_autoplay",
+      "type": "true_false",
+      "instructions": "Marcado automaticamente se o JSON tiver autoplay.",
+      "required": 0,
+      "conditional_logic": 0,
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
+      "message": "",
+      "default_value": 0,
+      "ui": 1,
+      "ui_on_text": "Sim",
+      "ui_off_text": "N\u00e3o"
+    },
+    {
+      "key": "field_cm_checksum_pt",
+      "label": "Checksum",
+      "name": "cm_checksum",
+      "type": "text",
+      "instructions": "Hash curto do payload para detectar mudan\u00e7as.",
+      "required": 0,
+      "conditional_logic": 0,
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
+      "default_value": "",
+      "placeholder": "",
+      "prepend": "",
+      "append": "",
+      "maxlength": "",
+      "readonly": 1,
+      "disabled": 0
+    },
+    {
+      "key": "field_cm_synced_at_pt",
+      "label": "\u00daltima sincroniza\u00e7\u00e3o",
+      "name": "cm_synced_at",
+      "type": "date_time_picker",
+      "instructions": "Preenchido automaticamente ao processar o JSON.",
+      "required": 0,
+      "conditional_logic": 0,
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
+      "display_format": "d/m/Y H:i",
+      "return_format": "Y-m-d H:i:s",
+      "first_day": 1
+    },
+    {
+      "key": "field_cm_related_post_pt",
+      "label": "Post relacionado",
+      "name": "cm_related_post",
+      "type": "post_object",
+      "instructions": "Associe a uma mat\u00e9ria do portal (opcional).",
+      "required": 0,
+      "conditional_logic": 0,
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
+      "post_type": [
+        "post"
+      ],
+      "taxonomy": "",
+      "allow_null": 1,
+      "multiple": 0,
+      "return_format": "id",
+      "ui": 1
+    }
+  ],
+  "location": [
+    [
+      {
+        "param": "post_type",
+        "operator": "==",
+        "value": "cm_story"
+      }
+    ]
+  ],
+  "menu_order": 0,
+  "position": "normal",
+  "style": "default",
+  "label_placement": "top",
+  "instruction_placement": "label",
+  "hide_on_screen": "",
+  "active": true,
+  "description": ""
+}

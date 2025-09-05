@@ -1,0 +1,30 @@
+{
+  "title": "História de Exemplo",
+  "ratio": "9:16",
+  "category": "Cultura",
+  "cover": "https://.../capa.jpg",
+  "estimated_read_time": 45,
+  "swiper": {
+    "loop": true,
+    "autoplay": { "delay": 3500, "disableOnInteraction": false },
+    "effect": "fade"
+  },
+  "slides": [
+    {
+      "image": "https://.../slide1.jpg",
+      "title": "Título do Slide 1",
+      "subtitle": "Sub",
+      "desc": "Texto curto",
+      "cta": { "text": "Mais", "url": "https://portal..." },
+      "style": {
+        "align": "left",
+        "textShadow": true
+      },
+      "caption": "Crédito da foto"
+    }
+  ],
+  "post_link": "https://portal.commarilia.com/slug-da-materia",
+  "author": "Redação",
+  "published_at": "2025-09-04T20:15:00-03:00",
+  "version": 1
+}
