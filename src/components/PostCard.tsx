@@ -28,47 +28,56 @@ function formatDate(iso: string) {
 export function PostCard({ post }: { post: PostCardData }) {
   const href = `https://portal.commarilia.com${post.uri}`;
   const dateStr = formatDate(post.date);
+  const ariaLabel = `Leia: ${post.title}`;
+
   return (
     <Link
       href={href}
       target="_blank"
-      className="group block bg-white rounded-lg border border-black/5 overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+      aria-label={ariaLabel}
+      className="group relative block rounded-xl shadow-lg overflow-hidden focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-400/50"
     >
-      <div className="relative w-full aspect-[4/5] overflow-hidden">
+      <div className="relative w-full aspect-[4/5]">
         {post.image ? (
           <Image
             src={post.image}
             alt={post.title}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-cover transition-transform duration-300 ease-out group-hover:scale-105"
+            className="object-cover transition-transform duration-500 ease-out motion-safe:group-hover:scale-105"
             priority={false}
           />
         ) : (
-          <div className="absolute inset-0 bg-gray-100" />
+          <div className="absolute inset-0 bg-gray-300" />
         )}
+
+        {/* Overlay gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent" />
+
+        {/* Category badge */}
         {post.category ? (
           <span
             className={`absolute left-2 top-2 z-10 ${badgeColor(
               post.category.slug
-            )} text-white text-xs font-medium px-2 py-1 rounded`}
+            )} text-white text-[11px] uppercase tracking-widest font-medium px-2 py-1 rounded-full`}
           >
             {post.category.name}
           </span>
         ) : null}
-      </div>
-      <div className="p-3">
-        <h3
-          className="text-base font-semibold leading-snug text-neutral-900 transition-colors group-hover:text-[#2563eb]"
-          style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}
-        >
-          {post.title}
-        </h3>
-        <p className="mt-2 text-xs text-neutral-600">
-          {post.readingTimeMin} min de leitura • {dateStr}
-        </p>
+
+        {/* Text block */}
+        <div className="absolute bottom-0 left-0 right-0 p-6 text-white z-10">
+          <h3
+            className="font-extrabold text-[clamp(20px,2.2vw,24px)] leading-[1.18]"
+            style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}
+          >
+            {post.title}
+          </h3>
+          <p className="mt-1 text-white/90 text-[clamp(13px,1.6vw,16px)] leading-[1.35]">
+            {post.readingTimeMin} min de leitura • {dateStr}
+          </p>
+        </div>
       </div>
     </Link>
   );
 }
-
