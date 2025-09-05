@@ -70,6 +70,8 @@ export async function GET(req: NextRequest) {
       const text = stripHtml(p.content ?? p.excerpt ?? "");
       const readingMinutes = estimateReadingTime(text);
       const primaryCat = p.categories?.nodes?.[0];
+      const cleanExcerpt = stripHtml(p.excerpt || "");
+      const excerpt = cleanExcerpt.length > 160 ? `${cleanExcerpt.slice(0, 157)}...` : cleanExcerpt;
       return {
         id: p.id,
         title: p.title,
@@ -78,6 +80,7 @@ export async function GET(req: NextRequest) {
         category: primaryCat ? { name: primaryCat.name, slug: primaryCat.slug } : null,
         image: p.featuredImage?.node?.sourceUrl || null,
         readingTimeMin: readingMinutes,
+        excerpt,
       };
     });
 

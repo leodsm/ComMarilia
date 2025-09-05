@@ -43,9 +43,12 @@ async function getInitial(): Promise<{ items: PostCardData[]; pageInfo: { endCur
   `;
   const data = await gqlFetch<WPPostsData>(query, { first: 9 }, 60);
   const items: PostCardData[] = data.posts.nodes.map((p) => {
-    const text = (p.content || p.excerpt || "").replace(/<[^>]*>/g, " ").replace(/&nbsp;/g, " ").trim();
+    const html = (p.content || p.excerpt || "");
+    const text = html.replace(/<[^>]*>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").trim();
     const words = text.split(/\s+/).filter(Boolean).length;
     const readingTimeMin = Math.max(1, Math.round(words / 200));
+    const cleanExcerpt = (p.excerpt || "").replace(/<[^>]*>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").trim();
+    const excerpt = cleanExcerpt.length > 160 ? `${cleanExcerpt.slice(0, 157)}...` : cleanExcerpt;
     return {
       id: p.id,
       title: p.title,
@@ -54,6 +57,7 @@ async function getInitial(): Promise<{ items: PostCardData[]; pageInfo: { endCur
       category: p.categories?.nodes?.[0] || null,
       image: p.featuredImage?.node?.sourceUrl || null,
       readingTimeMin,
+      excerpt,
     };
   });
   return { items, pageInfo: data.posts.pageInfo };
