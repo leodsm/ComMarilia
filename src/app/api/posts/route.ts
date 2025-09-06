@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
   const first = Math.min(parseInt(searchParams.get("first") || "9", 10) || 9, 24);
   const after = searchParams.get("after");
 
-  const query = /* GraphQL */ `
+  const queryWithAcf = /* GraphQL */ `
     query Posts($first: Int!, $after: String) {
       posts(first: $first, after: $after, where: { status: PUBLISH }) {
         pageInfo { endCursor hasNextPage }
@@ -84,8 +84,31 @@ export async function GET(req: NextRequest) {
     }
   `;
 
+  const queryBase = /* GraphQL */ `
+    query PostsBase($first: Int!, $after: String) {
+      posts(first: $first, after: $after, where: { status: PUBLISH }) {
+        pageInfo { endCursor hasNextPage }
+        nodes {
+          id
+          title
+          date
+          uri
+          excerpt
+          content
+          categories { nodes { name slug } }
+          featuredImage { node { sourceUrl } }
+        }
+      }
+    }
+  `;
+
   try {
-    const data = await gqlFetch<WPPostsData>(query, { first, after }, 60);
+    let data: WPPostsData;
+    try {
+      data = await gqlFetch<WPPostsData>(queryWithAcf, { first, after }, 60);
+    } catch {
+      data = await gqlFetch<WPPostsData>(queryBase, { first, after }, 60);
+    }
 
     const items = data.posts.nodes.map((p) => {
       const text = stripHtml(p.content ?? p.excerpt ?? "");

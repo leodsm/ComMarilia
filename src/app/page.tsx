@@ -33,7 +33,7 @@ type WPPostsData = {
 
 async function getInitial(): Promise<{ items: PostCardData[]; pageInfo: { endCursor: string | null; hasNextPage: boolean } }>
 {
-  const query = /* GraphQL */ `
+  const queryWithAcf = /* GraphQL */ `
     query HomeInitial($first: Int = 9) {
       posts(first: $first, where: { status: PUBLISH }) {
         pageInfo { endCursor hasNextPage }
@@ -59,7 +59,32 @@ async function getInitial(): Promise<{ items: PostCardData[]; pageInfo: { endCur
       }
     }
   `;
-  const data = await gqlFetch<WPPostsData>(query, { first: 9 }, 60);
+
+  const queryBase = /* GraphQL */ `
+    query HomeInitialBase($first: Int = 9) {
+      posts(first: $first, where: { status: PUBLISH }) {
+        pageInfo { endCursor hasNextPage }
+        nodes {
+          id
+          title
+          date
+          uri
+          excerpt
+          content
+          categories { nodes { name slug } }
+          featuredImage { node { sourceUrl } }
+        }
+      }
+    }
+  `;
+
+  let data: WPPostsData;
+  try {
+    data = await gqlFetch<WPPostsData>(queryWithAcf, { first: 9 }, 60);
+  } catch {
+    data = await gqlFetch<WPPostsData>(queryBase, { first: 9 }, 60);
+  }
+
   const items: PostCardData[] = data.posts.nodes.map((p) => {
     const html = (p.content || p.excerpt || "");
     const text = html.replace(/<[^>]*>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").trim();
