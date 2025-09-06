@@ -96,8 +96,7 @@ export function StoryPlayer({
   const containerRef = useRef<HTMLDivElement>(null);
 
   const currentStory = stories[currentStoryIndex];
-  if (!currentStory) return null;
-  const currentScreen = currentStory.screens[currentScreenIndex] || currentStory.screens[0];
+  const currentScreen = currentStory?.screens?.[currentScreenIndex] || currentStory?.screens?.[0];
 
   useEffect(() => setCurrentScreenIndex(0), [currentStoryIndex]);
 
@@ -122,13 +121,13 @@ export function StoryPlayer({
           break;
         case "ArrowRight":
           e.preventDefault();
-          if (currentScreenIndex < currentStory.screens.length - 1) setCurrentScreenIndex((p) => p + 1);
+          if (currentStory && currentScreenIndex < (currentStory.screens.length - 1)) setCurrentScreenIndex((p) => p + 1);
           break;
       }
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [onClose, onNext, onPrevious, currentScreenIndex, currentStoryIndex, currentStory.screens.length, stories.length]);
+  }, [onClose, onNext, onPrevious, currentScreenIndex, currentStoryIndex, currentStory?.screens.length, stories.length]);
 
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
@@ -168,15 +167,19 @@ export function StoryPlayer({
     const deltaY = endY - startY;
     const min = 50;
     if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > min) {
-      if (deltaY > 0) onClose();
-      else currentStoryIndex < stories.length - 1 ? onNext() : onClose();
+      if (deltaY > 0) {
+        onClose();
+      } else {
+        if (currentStoryIndex < stories.length - 1) onNext();
+        else onClose();
+      }
       return;
     }
     if (Math.abs(deltaX) > min) {
       if (deltaX > 0) {
         if (currentScreenIndex > 0) setCurrentScreenIndex((p) => p - 1);
       } else {
-        if (currentScreenIndex < currentStory.screens.length - 1) setCurrentScreenIndex((p) => p + 1);
+        if (currentStory && currentScreenIndex < (currentStory.screens.length - 1)) setCurrentScreenIndex((p) => p + 1);
       }
     }
     setStartX(0);
@@ -191,9 +194,11 @@ export function StoryPlayer({
     if (x < w / 3) {
       if (currentScreenIndex > 0) setCurrentScreenIndex((p) => p - 1);
     } else if (x > (2 * w) / 3) {
-      if (currentScreenIndex < currentStory.screens.length - 1) setCurrentScreenIndex((p) => p + 1);
+      if (currentStory && currentScreenIndex < (currentStory.screens.length - 1)) setCurrentScreenIndex((p) => p + 1);
     }
   };
+
+  if (!currentStory) return null;
 
   return (
     <div className="fixed inset-0 bg-gray-900 z-50">
@@ -248,7 +253,7 @@ export function StoryPlayer({
                     </h2>
                     {currentScreen.type === "quote" && currentScreen.quote && (
                       <>
-                        <div className="text-4xl mb-4">"</div>
+                        <div className="text-4xl mb-4">&quot;</div>
                         <p className="text-xl mb-4 italic text-left">{currentScreen.quote}</p>
                         <p className="text-sm opacity-75 text-left">— {currentScreen.author}</p>
                       </>
@@ -283,7 +288,6 @@ export function StoryPlayer({
                 const startIndex = Math.max(0, Math.min(currentStoryIndex - 2, total - maxBullets));
                 return Array.from({ length: maxBullets }, (_, i) => {
                   const storyIndex = startIndex + i;
-                  const story = stories[storyIndex];
                   return (
                     <div
                       key={storyIndex}

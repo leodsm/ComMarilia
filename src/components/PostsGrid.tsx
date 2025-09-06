@@ -48,7 +48,7 @@ export function PostsGrid({ initialItems, initialPageInfo }: { initialItems: Pos
       const json = (await res.json()) as { items: PostCardData[]; pageInfo: PageInfo };
       setItems((prev) => [...prev, ...json.items]);
       setPageInfo(json.pageInfo);
-    } catch (e) {
+    } catch {
       // fail silently for UX; could add toast here
       // console.error(e);
     } finally {
