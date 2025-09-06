@@ -19,7 +19,13 @@ type WPPost = {
       title?: string | null;
       text?: string | null;
       showButton?: boolean | number | null;
-      media?: { sourceUrl?: string | null; mimeType?: string | null } | null;
+      media?: (
+        | { sourceUrl?: string | null; mimeType?: string | null; mediaItemUrl?: string | null }
+        | {
+            nodes?: Array<{ sourceUrl?: string | null; mimeType?: string | null; mediaItemUrl?: string | null }>;
+            edges?: Array<{ node?: { sourceUrl?: string | null; mimeType?: string | null; mediaItemUrl?: string | null } }>;
+          }
+      ) | null;
     }> | null;
   } | null;
 };
@@ -52,7 +58,10 @@ async function getInitial(): Promise<{ items: PostCardData[]; pageInfo: { endCur
               title
               text
               showButton
-              media { sourceUrl mimeType }
+              media {
+                nodes { sourceUrl mimeType mediaItemUrl }
+                edges { node { sourceUrl mimeType mediaItemUrl } }
+              }
             }
           }
         }
@@ -93,9 +102,32 @@ async function getInitial(): Promise<{ items: PostCardData[]; pageInfo: { endCur
     const cleanExcerpt = (p.excerpt || "").replace(/<[^>]*>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").trim();
     const dot = cleanExcerpt.indexOf(".");
     const excerpt = dot === -1 ? cleanExcerpt : cleanExcerpt.slice(0, dot + 1).trim();
+    function pickMediaUrl(media: unknown): string | undefined {
+      const m = media as {
+        sourceUrl?: string | null;
+        mediaItemUrl?: string | null;
+        nodes?: Array<{ sourceUrl?: string | null; mediaItemUrl?: string | null }>;
+        edges?: Array<{ node?: { sourceUrl?: string | null; mediaItemUrl?: string | null } }>;
+      } | null | undefined;
+      if (!m) return undefined;
+      if (typeof m.sourceUrl === "string" && m.sourceUrl) return m.sourceUrl;
+      if (typeof m.mediaItemUrl === "string" && m.mediaItemUrl) return m.mediaItemUrl;
+      if (Array.isArray(m.nodes) && m.nodes.length) {
+        const n = m.nodes[0];
+        if (n?.sourceUrl) return n.sourceUrl;
+        if (n?.mediaItemUrl) return n.mediaItemUrl as string;
+      }
+      if (Array.isArray(m.edges) && m.edges.length) {
+        const n = m.edges[0]?.node;
+        if (n?.sourceUrl) return n.sourceUrl;
+        if (n?.mediaItemUrl) return n.mediaItemUrl as string;
+      }
+      return undefined;
+    }
+
     const acfScreens: PostCardData["acfScreens"] = Array.isArray(p.storiesSimples?.stories)
       ? p.storiesSimples!.stories!.map((s) => {
-          const mediaUrl: string | undefined = s?.media?.sourceUrl || undefined;
+          const mediaUrl = pickMediaUrl(s?.media);
           const t: string = (s?.type || "text").toString();
           if (t === "text") {
             const content: string = (s?.text || s?.title || "").toString().trim();

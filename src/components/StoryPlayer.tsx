@@ -96,7 +96,7 @@ export function StoryPlayer({
   const containerRef = useRef<HTMLDivElement>(null);
 
   const currentStory = stories[currentStoryIndex];
-  const currentScreen = currentStory?.screens?.[currentScreenIndex] || currentStory?.screens?.[0];
+  const currentScreen = currentStory?.screens?.[currentScreenIndex];
 
   useEffect(() => setCurrentScreenIndex(0), [currentStoryIndex]);
 
@@ -212,8 +212,8 @@ export function StoryPlayer({
         >
           <div className="news-card h-full w-full">
             <ImageWithFallback
-              src={currentScreen.imageUrl || currentStory.imageUrl}
-              alt={currentScreen.content}
+              src={currentScreen?.imageUrl || currentStory.imageUrl}
+              alt={currentScreen?.content}
               className="absolute inset-0 w-full h-full object-cover z-0"
             />
 
@@ -246,7 +246,7 @@ export function StoryPlayer({
                   </>
                 )}
 
-                {currentScreenIndex > 0 && (
+                {currentScreenIndex > 0 && currentScreen && (
                   <>
                     <h2 className="text-2xl md:text-3xl font-bold mb-4 text-left">
                       {currentScreen.type === "quote" ? "Citação" : currentScreen.content}
@@ -356,6 +356,13 @@ export function Stories() {
             image: string | null;
             excerpt?: string | null;
             category: { name: string; slug: string } | null;
+            acfScreens?: Array<{
+              type?: "text" | "quote";
+              content?: string;
+              imageUrl?: string;
+              quote?: string;
+              author?: string;
+            }> | null;
           }>;
         };
         if (cancelled) return;
@@ -366,13 +373,16 @@ export function Stories() {
           imageUrl: p.image || "",
           category: p.category?.name || "Geral",
           link: `https://portal.commarilia.com${p.uri}`,
-          screens: [
-            {
-              type: "text",
-              content: p.title,
-              imageUrl: p.image || undefined,
-            },
-          ],
+          screens:
+            p.acfScreens && p.acfScreens.length
+              ? p.acfScreens
+              : [
+                  {
+                    type: "text",
+                    content: p.title,
+                    imageUrl: p.image || undefined,
+                  },
+                ],
         }));
         setStories(mapped);
       } catch {

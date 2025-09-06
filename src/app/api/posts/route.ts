@@ -1,6 +1,15 @@
 import { NextRequest } from "next/server";
 import { gqlFetch } from "@/lib/graphql";
 
+type WPMediaLike =
+  | { sourceUrl?: string | null; mediaItemUrl?: string | null }
+  | { nodes?: Array<{ sourceUrl?: string | null; mediaItemUrl?: string | null }> }
+  | { edges?: Array<{ node?: { sourceUrl?: string | null; mediaItemUrl?: string | null } }> }
+  | Array<{ sourceUrl?: string | null; mediaItemUrl?: string | null }>
+  | string
+  | null
+  | undefined;
+
 type WPPost = {
   id: string;
   title: string;
@@ -16,7 +25,7 @@ type WPPost = {
       title?: string | null;
       text?: string | null;
       showButton?: boolean | number | null;
-      media?: { sourceUrl?: string | null; mimeType?: string | null } | null;
+      media?: WPMediaLike;
     }> | null;
   } | null;
 };
@@ -28,11 +37,10 @@ type WPPostsData = {
   };
 };
 
+// --- Utils ---
 function stripHtml(html?: string | null): string {
   if (!html) return "";
-  // remove HTML tags
   const noTags = html.replace(/<[^>]*>/g, " ");
-  // decode a few common entities without extra deps
   return noTags
     .replace(/&nbsp;/g, " ")
     .replace(/&amp;/g, "&")
@@ -40,67 +48,122 @@ function stripHtml(html?: string | null): string {
     .replace(/&#39;/g, "'")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
 function estimateReadingTime(text: string): number {
   const words = text.split(/\s+/).filter(Boolean).length;
-  const minutes = Math.max(1, Math.round(words / 200));
-  return minutes;
+  return Math.max(1, Math.round(words / 200));
 }
 
-export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const first = Math.min(parseInt(searchParams.get("first") || "9", 10) || 9, 24);
-  const after = searchParams.get("after");
+/** Aceita vários formatos de `media` (objeto único, array, nodes/edges, string) e retorna a melhor URL. */
+function pickMediaUrl(media: WPMediaLike): string | undefined {
+  if (!media) return undefined;
 
-  const queryWithAcf = /* GraphQL */ `
-    query Posts($first: Int!, $after: String) {
-      posts(first: $first, after: $after, where: { status: PUBLISH }) {
-        pageInfo { endCursor hasNextPage }
-        nodes {
-          id
-          title
-          date
-          uri
-          excerpt
-          content
-          categories { nodes { name slug } }
-          featuredImage { node { sourceUrl } }
-          storiesSimples {
-            stories {
-              type
-              title
-              text
-              showButton
-              media {
+  // string direta
+  if (typeof media === "string") return media || undefined;
+
+  // array de medias
+  if (Array.isArray(media)) {
+    for (const m of media) {
+      if (m?.sourceUrl) return m.sourceUrl;
+      if (m?.mediaItemUrl) return m.mediaItemUrl || undefined;
+    }
+    return undefined;
+  }
+
+  // objeto simples
+  const obj = media as any;
+  if (typeof obj.sourceUrl === "string" && obj.sourceUrl) return obj.sourceUrl;
+  if (typeof obj.mediaItemUrl === "string" && obj.mediaItemUrl) return obj.mediaItemUrl;
+
+  // nodes
+  if (Array.isArray(obj.nodes) && obj.nodes.length) {
+    const n = obj.nodes[0];
+    if (n?.sourceUrl) return n.sourceUrl;
+    if (n?.mediaItemUrl) return n.mediaItemUrl;
+  }
+
+  // edges
+  if (Array.isArray(obj.edges) && obj.edges.length) {
+    const n = obj.edges[0]?.node;
+    if (n?.sourceUrl) return n.sourceUrl;
+    if (n?.mediaItemUrl) return n.mediaItemUrl;
+  }
+
+  return undefined;
+}
+
+/** Normaliza o type dos slides do ACF para o que o player entende hoje. */
+function normalizeSlideType(t?: string | null): "text" | "quote" {
+  const k = (t || "").toLowerCase();
+  if (k === "quote") return "quote";
+  // "image" e "video" também caem em "text" (usando imageUrl)
+  return "text";
+}
+
+// --- Queries ---
+const queryWithAcf = /* GraphQL */ `
+  query Posts($first: Int!, $after: String) {
+    posts(first: $first, after: $after, where: { status: PUBLISH, orderby: { field: DATE, order: DESC } }) {
+      pageInfo { endCursor hasNextPage }
+      nodes {
+        id
+        title
+        date
+        uri
+        excerpt
+        content
+        categories { nodes { name slug } }
+        featuredImage { node { sourceUrl } }
+        storiesSimples {
+          stories {
+            type
+            title
+            text
+            showButton
+            # Deixa genérico o suficiente para cobrir diferentes tipos de campo ACF:
+            media {
+              ... on MediaItem {
                 sourceUrl
-                mimeType
+                mediaItemUrl
+              }
+              ... on MediaItemConnection {
+                nodes { sourceUrl mediaItemUrl }
+                edges { node { sourceUrl mediaItemUrl } }
               }
             }
           }
         }
       }
     }
-  `;
+  }
+`;
 
-  const queryBase = /* GraphQL */ `
-    query PostsBase($first: Int!, $after: String) {
-      posts(first: $first, after: $after, where: { status: PUBLISH }) {
-        pageInfo { endCursor hasNextPage }
-        nodes {
-          id
-          title
-          date
-          uri
-          excerpt
-          content
-          categories { nodes { name slug } }
-          featuredImage { node { sourceUrl } }
-        }
+const queryBase = /* GraphQL */ `
+  query PostsBase($first: Int!, $after: String) {
+    posts(first: $first, after: $after, where: { status: PUBLISH, orderby: { field: DATE, order: DESC } }) {
+      pageInfo { endCursor hasNextPage }
+      nodes {
+        id
+        title
+        date
+        uri
+        excerpt
+        content
+        categories { nodes { name slug } }
+        featuredImage { node { sourceUrl } }
       }
     }
-  `;
+  }
+`;
+
+// --- Handler ---
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const first = Math.min(parseInt(searchParams.get("first") || "9", 10) || 9, 24);
+  const after = searchParams.get("after");
 
   try {
     let data: WPPostsData;
@@ -117,24 +180,43 @@ export async function GET(req: NextRequest) {
       const cleanExcerpt = stripHtml(p.excerpt || "");
       const dot = cleanExcerpt.indexOf(".");
       const excerpt = dot === -1 ? cleanExcerpt : cleanExcerpt.slice(0, dot + 1).trim();
-      // Map ACF stories (if any) into StoryPlayer-friendly screens
+
+      // --- SLIDE DE CAPA ---
+      const coverUrl = p.featuredImage?.node?.sourceUrl || undefined;
+      const screens: Array<{ type: "text" | "quote"; content?: string | null; imageUrl?: string | null; quote?: string | null; author?: string | null; }> = [
+        {
+          type: "text",
+          content: stripHtml(p.title),
+          imageUrl: coverUrl || null,
+        },
+      ];
+
+      // --- SLIDES DO ACF -> SCREENS ---
       const acfScreens = Array.isArray(p.storiesSimples?.stories)
         ? p.storiesSimples!.stories!.map((s) => {
-            const mediaUrl: string | undefined = s?.media?.sourceUrl || undefined;
-            const t: string = (s?.type || "text").toString();
-            if (t === "text") {
-              const content: string = (s?.text || s?.title || "").toString().trim();
-              return { type: "text", content, imageUrl: mediaUrl };
+            const mediaUrl = pickMediaUrl(s?.media);
+            const t = normalizeSlideType(s?.type);
+            if (t === "quote") {
+              // quote prioriza texto no campo quote; mantém imagem se houver
+              return {
+                type: "quote" as const,
+                quote: (s?.text || s?.title || "")?.toString().trim() || null,
+                author: null,
+                imageUrl: mediaUrl || null,
+              };
             }
-            if (t === "image") {
-              return { type: "text", content: "", imageUrl: mediaUrl };
-            }
-            if (t === "video") {
-              return { type: "text", content: (s?.title || "").toString(), imageUrl: mediaUrl };
-            }
-            return { type: "text", content: (s?.title || "").toString(), imageUrl: mediaUrl };
+            // text: usa texto ou título; imagem opcional
+            return {
+              type: "text" as const,
+              content: (s?.text || s?.title || "")?.toString().trim() || "",
+              imageUrl: mediaUrl || null,
+            };
           })
         : null;
+
+      if (acfScreens && acfScreens.length) {
+        screens.push(...acfScreens);
+      }
 
       return {
         id: p.id,
@@ -146,7 +228,12 @@ export async function GET(req: NextRequest) {
         readingTimeMin: readingMinutes,
         excerpt,
         contentHtml: p.content || null,
-        acfScreens,
+
+        // Para compat com código antigo que lia acfScreens:
+        acfScreens: acfScreens && acfScreens.length ? acfScreens : null,
+
+        // Novo campo já pronto pro Player:
+        screens,
       };
     });
 
@@ -156,9 +243,9 @@ export async function GET(req: NextRequest) {
     });
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "Failed to load posts";
-    return new Response(
-      JSON.stringify({ error: message }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 }
