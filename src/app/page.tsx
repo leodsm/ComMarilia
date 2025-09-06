@@ -128,20 +128,21 @@ async function getInitial(): Promise<{ items: PostCardData[]; pageInfo: { endCur
     const acfScreens: PostCardData["acfScreens"] = Array.isArray(p.storiesSimples?.stories)
       ? p.storiesSimples!.stories!.map((s) => {
           const mediaUrl = pickMediaUrl(s?.media);
-          const t: string = (s?.type || "text").toString();
-          if (t === "text") {
-            const content: string = (s?.text || s?.title || "").toString().trim();
-            return { type: "text" as const, content, imageUrl: mediaUrl };
+          const rawType: string = (s?.type || "text").toString().toLowerCase();
+          const base = {
+            type: "text" as const,
+            slideTitle: (s?.title || null) as string | null,
+            content: (s?.text || s?.title || "").toString().trim(),
+            showButton: !!s?.showButton,
+          };
+          if (rawType === "video") {
+            return { ...base, videoUrl: mediaUrl || null };
           }
-          if (t === "image") {
-            return { type: "text" as const, content: "", imageUrl: mediaUrl };
-          }
-          if (t === "video") {
-            return { type: "text" as const, content: (s?.title || "").toString(), imageUrl: mediaUrl };
-          }
-          return { type: "text" as const, content: (s?.title || "").toString(), imageUrl: mediaUrl };
+          // image or text
+          return { ...base, imageUrl: mediaUrl || null };
         })
       : null;
+
 
     return {
       id: p.id,

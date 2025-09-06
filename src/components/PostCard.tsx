@@ -16,9 +16,12 @@ export type PostCardData = {
   acfScreens?: Array<{
     type?: "text" | "quote";
     content?: string;
-    imageUrl?: string;
+    imageUrl?: string | null;
+    videoUrl?: string | null;
     quote?: string;
     author?: string;
+    slideTitle?: string | null;
+    showButton?: boolean | null;
   }> | null;
 };
 

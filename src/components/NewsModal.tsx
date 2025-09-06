@@ -131,4 +131,3 @@ export function NewsModal({ story, isOpen, onClose }: { story: NewsStory | null;
 }
 
 export default NewsModal;
-

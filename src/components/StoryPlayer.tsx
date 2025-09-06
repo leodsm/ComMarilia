@@ -5,7 +5,10 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 export type StoryScreen = {
   type?: "text" | "quote";
   content?: string;
-  imageUrl?: string;
+  imageUrl?: string | null;
+  videoUrl?: string | null;
+  slideTitle?: string | null;
+  showButton?: boolean | null;
   quote?: string;
   author?: string;
 };
@@ -99,6 +102,26 @@ export function StoryPlayer({
   const currentScreen = currentStory?.screens?.[currentScreenIndex];
 
   useEffect(() => setCurrentScreenIndex(0), [currentStoryIndex]);
+
+  // Lock background scroll while StoryPlayer is open
+  useEffect(() => {
+    const body = document.body;
+    const html = document.documentElement;
+    const prevOverflow = body.style.overflow;
+    const prevPaddingRight = body.style.paddingRight;
+    const prevOverscroll = html.style.overscrollBehavior;
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+
+    body.style.overflow = "hidden";
+    if (scrollbarWidth > 0) body.style.paddingRight = `${scrollbarWidth}px`;
+    html.style.overscrollBehavior = "none";
+
+    return () => {
+      body.style.overflow = prevOverflow;
+      body.style.paddingRight = prevPaddingRight;
+      html.style.overscrollBehavior = prevOverscroll;
+    };
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -211,11 +234,22 @@ export function StoryPlayer({
           onClick={handleTap}
         >
           <div className="news-card h-full w-full">
-            <ImageWithFallback
-              src={currentScreen?.imageUrl || currentStory.imageUrl}
-              alt={currentScreen?.content}
-              className="absolute inset-0 w-full h-full object-cover z-0"
-            />
+            {currentScreen?.videoUrl ? (
+              <video
+                className="absolute inset-0 w-full h-full object-cover z-0"
+                src={currentScreen.videoUrl}
+                playsInline
+                muted
+                autoPlay
+                loop
+              />
+            ) : (
+              <ImageWithFallback
+                src={currentScreen?.imageUrl || currentStory.imageUrl}
+                alt={currentScreen?.content}
+                className="absolute inset-0 w-full h-full object-cover z-0"
+              />
+            )}
 
             <div className="news-content">
               <div className="w-full max-w-3xl">
@@ -243,6 +277,26 @@ export function StoryPlayer({
                     >
                       Leia Mais
                     </Button>
+                    {currentScreen?.slideTitle || currentScreen?.content ? (
+                      <div className="mt-4">
+                        {currentScreen.slideTitle ? (
+                          <h2 className="text-2xl md:text-3xl font-bold mb-2 text-left">{currentScreen.slideTitle}</h2>
+                        ) : null}
+                        
+                        {currentScreen.showButton ? (
+                          <Button
+                            variant="ghost"
+                            className="text-white mt-3"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onOpenNewsModal(currentStory);
+                            }}
+                          >
+                            Leia Mais
+                          </Button>
+                        ) : null}
+                      </div>
+                    ) : null}
                   </>
                 )}
 
@@ -259,7 +313,21 @@ export function StoryPlayer({
                       </>
                     )}
                     {currentScreen.type !== "quote" && (
-                      <p className="text-xl text-left">{currentScreen.content}</p>
+                      <>
+                        
+                        {currentScreen.showButton ? (
+                          <Button
+                            variant="ghost"
+                            className="text-white mt-4"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onOpenNewsModal(currentStory);
+                            }}
+                          >
+                            Leia Mais
+                          </Button>
+                        ) : null}
+                      </>
                     )}
                   </>
                 )}

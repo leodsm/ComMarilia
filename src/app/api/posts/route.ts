@@ -74,6 +74,7 @@ function pickMediaUrl(media: WPMediaLike): string | undefined {
   }
 
   // objeto simples
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const obj = media as any;
   if (typeof obj.sourceUrl === "string" && obj.sourceUrl) return obj.sourceUrl;
   if (typeof obj.mediaItemUrl === "string" && obj.mediaItemUrl) return obj.mediaItemUrl;
@@ -117,21 +118,24 @@ const queryWithAcf = /* GraphQL */ `
         content
         categories { nodes { name slug } }
         featuredImage { node { sourceUrl } }
+
         storiesSimples {
           stories {
             type
             title
             text
             showButton
-            # Deixa genérico o suficiente para cobrir diferentes tipos de campo ACF:
             media {
-              ... on MediaItem {
-                sourceUrl
-                mediaItemUrl
-              }
-              ... on MediaItemConnection {
-                nodes { sourceUrl mediaItemUrl }
-                edges { node { sourceUrl mediaItemUrl } }
+              sourceUrl
+              mediaItemUrl
+              altText
+              mediaDetails {
+                sizes {
+                  sourceUrl
+                  width
+                  height
+                  name
+                }
               }
             }
           }
@@ -140,6 +144,7 @@ const queryWithAcf = /* GraphQL */ `
     }
   }
 `;
+
 
 const queryBase = /* GraphQL */ `
   query PostsBase($first: Int!, $after: String) {
@@ -196,6 +201,7 @@ export async function GET(req: NextRequest) {
         ? p.storiesSimples!.stories!.map((s) => {
             const mediaUrl = pickMediaUrl(s?.media);
             const t = normalizeSlideType(s?.type);
+            const rawType = (s?.type || "text").toString().toLowerCase();
             if (t === "quote") {
               // quote prioriza texto no campo quote; mantém imagem se houver
               return {
@@ -203,13 +209,19 @@ export async function GET(req: NextRequest) {
                 quote: (s?.text || s?.title || "")?.toString().trim() || null,
                 author: null,
                 imageUrl: mediaUrl || null,
+                slideTitle: (s?.title || null) as string | null,
+                content: (s?.text || s?.title || "")?.toString().trim() || "",
+                showButton: !!s?.showButton,
               };
             }
             // text: usa texto ou título; imagem opcional
             return {
               type: "text" as const,
               content: (s?.text || s?.title || "")?.toString().trim() || "",
-              imageUrl: mediaUrl || null,
+              imageUrl: rawType === "video" ? null : (mediaUrl || null),
+              videoUrl: rawType === "video" ? (mediaUrl || null) : null,
+              slideTitle: (s?.title || null) as string | null,
+              showButton: !!s?.showButton,
             };
           })
         : null;
@@ -217,6 +229,8 @@ export async function GET(req: NextRequest) {
       if (acfScreens && acfScreens.length) {
         screens.push(...acfScreens);
       }
+
+      // (no V2 export here; keep legacy screens only)
 
       return {
         id: p.id,
