@@ -10,6 +10,15 @@ type WPPost = {
   content?: string | null;
   categories?: { nodes: Array<{ name: string; slug: string }> } | null;
   featuredImage?: { node?: { sourceUrl?: string | null } | null } | null;
+  storiesSimples?: {
+    stories?: Array<{
+      type?: string | null;
+      title?: string | null;
+      text?: string | null;
+      showButton?: boolean | number | null;
+      media?: { sourceUrl?: string | null; mimeType?: string | null } | null;
+    }> | null;
+  } | null;
 };
 
 type WPPostsData = {
@@ -58,6 +67,18 @@ export async function GET(req: NextRequest) {
           content
           categories { nodes { name slug } }
           featuredImage { node { sourceUrl } }
+          storiesSimples {
+            stories {
+              type
+              title
+              text
+              showButton
+              media {
+                sourceUrl
+                mimeType
+              }
+            }
+          }
         }
       }
     }
@@ -73,6 +94,25 @@ export async function GET(req: NextRequest) {
       const cleanExcerpt = stripHtml(p.excerpt || "");
       const dot = cleanExcerpt.indexOf(".");
       const excerpt = dot === -1 ? cleanExcerpt : cleanExcerpt.slice(0, dot + 1).trim();
+      // Map ACF stories (if any) into StoryPlayer-friendly screens
+      const acfScreens = Array.isArray(p.storiesSimples?.stories)
+        ? p.storiesSimples!.stories!.map((s) => {
+            const mediaUrl: string | undefined = s?.media?.sourceUrl || undefined;
+            const t: string = (s?.type || "text").toString();
+            if (t === "text") {
+              const content: string = (s?.text || s?.title || "").toString().trim();
+              return { type: "text", content, imageUrl: mediaUrl };
+            }
+            if (t === "image") {
+              return { type: "text", content: "", imageUrl: mediaUrl };
+            }
+            if (t === "video") {
+              return { type: "text", content: (s?.title || "").toString(), imageUrl: mediaUrl };
+            }
+            return { type: "text", content: (s?.title || "").toString(), imageUrl: mediaUrl };
+          })
+        : null;
+
       return {
         id: p.id,
         title: p.title,
@@ -83,6 +123,7 @@ export async function GET(req: NextRequest) {
         readingTimeMin: readingMinutes,
         excerpt,
         contentHtml: p.content || null,
+        acfScreens,
       };
     });
 

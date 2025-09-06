@@ -13,6 +13,15 @@ type WPPost = {
   excerpt?: string | null;
   categories?: { nodes: Array<{ name: string; slug: string }> } | null;
   featuredImage?: { node?: { sourceUrl?: string | null } | null } | null;
+  storiesSimples?: {
+    stories?: Array<{
+      type?: string | null;
+      title?: string | null;
+      text?: string | null;
+      showButton?: boolean | number | null;
+      media?: { sourceUrl?: string | null; mimeType?: string | null } | null;
+    }> | null;
+  } | null;
 };
 
 type WPPostsData = {
@@ -37,6 +46,15 @@ async function getInitial(): Promise<{ items: PostCardData[]; pageInfo: { endCur
           content
           categories { nodes { name slug } }
           featuredImage { node { sourceUrl } }
+          storiesSimples {
+            stories {
+              type
+              title
+              text
+              showButton
+              media { sourceUrl mimeType }
+            }
+          }
         }
       }
     }
@@ -50,6 +68,24 @@ async function getInitial(): Promise<{ items: PostCardData[]; pageInfo: { endCur
     const cleanExcerpt = (p.excerpt || "").replace(/<[^>]*>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").trim();
     const dot = cleanExcerpt.indexOf(".");
     const excerpt = dot === -1 ? cleanExcerpt : cleanExcerpt.slice(0, dot + 1).trim();
+    const acfScreens: PostCardData["acfScreens"] = Array.isArray(p.storiesSimples?.stories)
+      ? p.storiesSimples!.stories!.map((s) => {
+          const mediaUrl: string | undefined = s?.media?.sourceUrl || undefined;
+          const t: string = (s?.type || "text").toString();
+          if (t === "text") {
+            const content: string = (s?.text || s?.title || "").toString().trim();
+            return { type: "text" as const, content, imageUrl: mediaUrl };
+          }
+          if (t === "image") {
+            return { type: "text" as const, content: "", imageUrl: mediaUrl };
+          }
+          if (t === "video") {
+            return { type: "text" as const, content: (s?.title || "").toString(), imageUrl: mediaUrl };
+          }
+          return { type: "text" as const, content: (s?.title || "").toString(), imageUrl: mediaUrl };
+        })
+      : null;
+
     return {
       id: p.id,
       title: p.title,
@@ -60,6 +96,7 @@ async function getInitial(): Promise<{ items: PostCardData[]; pageInfo: { endCur
       readingTimeMin,
       excerpt,
       contentHtml: p.content || null,
+      acfScreens,
     };
   });
   return { items, pageInfo: data.posts.pageInfo };

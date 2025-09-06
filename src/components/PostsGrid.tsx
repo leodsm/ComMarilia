@@ -67,13 +67,16 @@ export function PostsGrid({ initialItems, initialPageInfo }: { initialItems: Pos
       publishDate: p.date,
       excerpt: p.excerpt || null,
       contentHtml: p.contentHtml || null,
-      screens: [
-        {
-          type: "text",
-          content: p.title,
-          imageUrl: p.image || undefined,
-        },
-      ],
+      screens:
+        p.acfScreens && p.acfScreens.length
+          ? p.acfScreens
+          : [
+              {
+                type: "text",
+                content: p.title,
+                imageUrl: p.image || undefined,
+              },
+            ],
     }));
   }, [items]);
 

@@ -1,0 +1,102 @@
+[
+{
+"key": "group_stories_simples",
+"title": "Stories Simples",
+"show_in_graphql": 1,
+"graphql_field_name": "storiesSimples",
+"fields": [
+{
+"key": "field_stories_repeater",
+"label": "Stories",
+"name": "stories",
+"type": "repeater",
+"instructions": "Adicione cada storie como um slide.",
+"collapsed": "field_story_title",
+"min": 0,
+"max": 0,
+"layout": "row",
+"button_label": "Adicionar storie",
+"show_in_graphql": 1,
+"graphql_field_name": "stories",
+"sub_fields": [
+{
+"key": "field_story_type",
+"label": "Tipo do slide",
+"name": "tipo",
+"type": "select",
+"choices": {
+"image": "Imagem",
+"video": "Vídeo",
+"text": "Texto"
+},
+"default_value": "text",
+"allow_null": 0,
+"multiple": 0,
+"ui": 1,
+"return_format": "value",
+"wrapper": { "width": "25", "class": "", "id": "" },
+"show_in_graphql": 1,
+"graphql_field_name": "type"
+},
+{
+"key": "field_story_title",
+"label": "Título (opcional)",
+"name": "titulo",
+"type": "text",
+"wrapper": { "width": "35", "class": "", "id": "" },
+"show_in_graphql": 1,
+"graphql_field_name": "title"
+},
+{
+"key": "field_story_text",
+"label": "Texto (opcional)",
+"name": "texto",
+"type": "textarea",
+"rows": 4,
+"new_lines": "br",
+"wrapper": { "width": "40", "class": "", "id": "" },
+"show_in_graphql": 1,
+"graphql_field_name": "text"
+},
+{
+"key": "field_story_media",
+"label": "Mídia (imagem ou vídeo)",
+"name": "midia",
+"type": "file",
+"instructions": "Envie uma imagem (jpg, png, webp, gif) ou vídeo (mp4, mov, webm).",
+"return_format": "id",
+"library": "all",
+"mime_types": "jpg,jpeg,png,webp,gif,mp4,mov,webm,m4v,ogg",
+"wrapper": { "width": "50", "class": "", "id": "" },
+"show_in_graphql": 1,
+"graphql_field_name": "media"
+},
+{
+"key": "field_story_show_button",
+"label": "Mostrar botão “Leia Mais”",
+"name": "mostrar_botao",
+"type": "true_false",
+"ui": 1,
+"default_value": 1,
+"wrapper": { "width": "20", "class": "", "id": "" },
+"show_in_graphql": 1,
+"graphql_field_name": "showButton"
+}
+]
+}
+],
+"location": [
+[
+{ "param": "post_type", "operator": "==", "value": "post" }
+]
+],
+"menu_order": 0,
+"position": "normal",
+"style": "default",
+"label_placement": "top",
+"instruction_placement": "label",
+"hide_on_screen": [],
+"active": true,
+"description": "Grupo simples para montar Stories por post."
+}
+]

@@ -12,6 +12,14 @@ export type PostCardData = {
   excerpt?: string | null;
   // Optional: full content (HTML) if available
   contentHtml?: string | null;
+  // Optional: stories from ACF (already mapped to player shape)
+  acfScreens?: Array<{
+    type?: "text" | "quote";
+    content?: string;
+    imageUrl?: string;
+    quote?: string;
+    author?: string;
+  }> | null;
 };
 
 export function PostCard({ post, onOpenStory }: { post: PostCardData; onOpenStory?: () => void }) {
