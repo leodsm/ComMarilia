@@ -25,22 +25,33 @@ export function PostCard({ post }: { post: PostCardData }) {
       .trim();
   }
 
-  function categoryBadgeColor(name?: string, slug?: string): string {
+  // (cores por categoria aplicadas via hex + alpha na função abaixo)
+
+  // Hex map (mesmas cores) para compor vidro translúcido
+  function categoryColorHex(name?: string, slug?: string): string {
     const key = normalizeKey(slug || name);
     switch (key) {
       case "brasil":
-        return "bg-[#2563eb]"; // azul
+        return "#2563eb";
       case "marilia":
-        return "bg-[#dc2626]"; // vermelho
+        return "#dc2626";
       case "mundo":
-        return "bg-[#0ea5e9]"; // sky
+        return "#0ea5e9";
       case "regiao":
-        return "bg-[#ea580c]"; // laranja
+        return "#ea580c";
       case "saude":
-        return "bg-[#16a34a]"; // verde
+        return "#16a34a";
       default:
-        return "bg-white/15"; // fallback discreto
+        return "#9ca3af"; // slate-400
     }
+  }
+
+  function hexToRgba(hex: string, alpha: number): string {
+    const sanitized = hex.replace('#','');
+    const r = parseInt(sanitized.substring(0,2),16);
+    const g = parseInt(sanitized.substring(2,4),16);
+    const b = parseInt(sanitized.substring(4,6),16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   }
 
   return (
@@ -72,18 +83,23 @@ export function PostCard({ post }: { post: PostCardData }) {
         {/* Text block */}
         <div className="absolute bottom-0 left-0 right-0 p-6 text-white z-10">
           <span
-            className={`inline-block text-white text-[11px] uppercase tracking-widest font-semibold px-2.5 py-1 rounded-full mb-2 ring-1 ring-white/15 ${categoryBadgeColor(post.category?.name, post.category?.slug)}`}
+            className={`inline-block text-white text-[11px] uppercase tracking-widest font-semibold px-2.5 py-1 rounded-full mb-2`}
+            style={{ backgroundColor: categoryColorHex(post.category?.name, post.category?.slug) }}
           >
             {post.category?.name ?? "Uncategorized"}
           </span>
-          <h3 className="font-extrabold text-[16px] leading-[1.18] break-words">
+          <h3 className="font-poppins font-bold text-[16px] leading-[1.18] break-words">
             {post.title}
           </h3>
-          {post.excerpt ? (
-            <p className="mt-1 text-white/85 text-[clamp(13px,1.6vw,16px)] leading-[1.35] line-clamp-2">
-              {post.excerpt}
-            </p>
-          ) : null}
+          {(() => {
+            const t = (post.excerpt || "").trim();
+            if (!t) return null;
+            const idx = t.indexOf(".");
+            const shown = idx === -1 ? t : t.slice(0, idx + 1).trim();
+            return (
+              <p className="mt-2 text-white/90 text-[14px] leading-[1.35] break-words line-clamp-2">{shown}</p>
+            );
+          })()}
         </div>
       </div>
     </Link>

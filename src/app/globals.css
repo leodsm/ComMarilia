@@ -10,6 +10,11 @@
   --radius-xl: 20px;
   --shadow-soft: 0 6px 20px rgba(0, 0, 0, 0.08);
   --shadow-card: 0 12px 30px rgba(2, 6, 23, 0.12);
+  /* Escalas fluidas usadas no card do mock */
+  --fs-title: clamp(20px, 2.2vw, 24px);
+  --lh-title: 1.18;
+  --fs-sub: clamp(13px, 1.6vw, 16px);
+  --lh-sub: 1.35;
 }
 
 @theme inline {

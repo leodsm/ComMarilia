@@ -48,7 +48,7 @@ async function getInitial(): Promise<{ items: PostCardData[]; pageInfo: { endCur
     const words = text.split(/\s+/).filter(Boolean).length;
     const readingTimeMin = Math.max(1, Math.round(words / 200));
     const cleanExcerpt = (p.excerpt || "").replace(/<[^>]*>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").trim();
-    const excerpt = cleanExcerpt.length > 160 ? `${cleanExcerpt.slice(0, 157)}...` : cleanExcerpt;
+    const excerpt = cleanExcerpt; // show full subtitle on cards
     return {
       id: p.id,
       title: p.title,

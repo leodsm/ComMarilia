@@ -71,7 +71,7 @@ export async function GET(req: NextRequest) {
       const readingMinutes = estimateReadingTime(text);
       const primaryCat = p.categories?.nodes?.[0];
       const cleanExcerpt = stripHtml(p.excerpt || "");
-      const excerpt = cleanExcerpt.length > 160 ? `${cleanExcerpt.slice(0, 157)}...` : cleanExcerpt;
+      const excerpt = cleanExcerpt; // full subtitle
       return {
         id: p.id,
         title: p.title,
