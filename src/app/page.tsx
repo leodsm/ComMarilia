@@ -48,7 +48,8 @@ async function getInitial(): Promise<{ items: PostCardData[]; pageInfo: { endCur
     const words = text.split(/\s+/).filter(Boolean).length;
     const readingTimeMin = Math.max(1, Math.round(words / 200));
     const cleanExcerpt = (p.excerpt || "").replace(/<[^>]*>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").trim();
-    const excerpt = cleanExcerpt; // show full subtitle on cards
+    const dot = cleanExcerpt.indexOf(".");
+    const excerpt = dot === -1 ? cleanExcerpt : cleanExcerpt.slice(0, dot + 1).trim();
     return {
       id: p.id,
       title: p.title,
@@ -58,6 +59,7 @@ async function getInitial(): Promise<{ items: PostCardData[]; pageInfo: { endCur
       image: p.featuredImage?.node?.sourceUrl || null,
       readingTimeMin,
       excerpt,
+      contentHtml: p.content || null,
     };
   });
   return { items, pageInfo: data.posts.pageInfo };

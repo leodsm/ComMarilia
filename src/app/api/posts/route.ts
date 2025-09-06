@@ -71,7 +71,8 @@ export async function GET(req: NextRequest) {
       const readingMinutes = estimateReadingTime(text);
       const primaryCat = p.categories?.nodes?.[0];
       const cleanExcerpt = stripHtml(p.excerpt || "");
-      const excerpt = cleanExcerpt; // full subtitle
+      const dot = cleanExcerpt.indexOf(".");
+      const excerpt = dot === -1 ? cleanExcerpt : cleanExcerpt.slice(0, dot + 1).trim();
       return {
         id: p.id,
         title: p.title,
@@ -81,6 +82,7 @@ export async function GET(req: NextRequest) {
         image: p.featuredImage?.node?.sourceUrl || null,
         readingTimeMin: readingMinutes,
         excerpt,
+        contentHtml: p.content || null,
       };
     });
 

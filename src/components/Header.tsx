@@ -9,14 +9,14 @@ export default function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-black/5">
+      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur">
         <div className="max-w-[990px] mx-auto px-4">
           <div className="h-16 flex items-center justify-center relative">
             <button
               type="button"
               aria-label={open ? "Fechar menu" : "Abrir menu"}
               onClick={() => setOpen((v) => !v)}
-              className="absolute left-2 inline-flex items-center justify-center w-10 h-10 rounded-md border border-black/10 bg-white/70 hover:bg-white transition"
+              className="absolute left-2 inline-flex items-center justify-center w-10 h-10 rounded-md bg-white/70 hover:bg-white transition"
             >
               {/* Hamburger icon */}
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-neutral-700">
@@ -53,7 +53,7 @@ export default function Header() {
             onClick={() => setOpen(false)}
             aria-hidden
           />
-          <nav className="fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-xl border-r border-black/10 p-4">
+          <nav className="fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-xl p-4">
             <div className="flex items-center justify-between mb-4">
               <span className="text-sm font-medium text-neutral-600">Menu</span>
               <button
@@ -93,4 +93,3 @@ export default function Header() {
     </>
   );
 }
-

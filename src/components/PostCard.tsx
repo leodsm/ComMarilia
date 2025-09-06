@@ -10,9 +10,11 @@ export type PostCardData = {
   readingTimeMin: number;
   category: { name: string; slug: string } | null;
   excerpt?: string | null;
+  // Optional: full content (HTML) if available
+  contentHtml?: string | null;
 };
 
-export function PostCard({ post }: { post: PostCardData }) {
+export function PostCard({ post, onOpenStory }: { post: PostCardData; onOpenStory?: () => void }) {
   const href = `https://portal.commarilia.com${post.uri}`;
   const ariaLabel = `Leia: ${post.title}`;
 
@@ -54,11 +56,20 @@ export function PostCard({ post }: { post: PostCardData }) {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   }
 
+  function handleClick(e: React.MouseEvent) {
+    if (onOpenStory) {
+      e.preventDefault();
+      onOpenStory();
+    }
+  }
+
   return (
     <Link
       href={href}
       target="_blank"
+      rel="noopener noreferrer"
       aria-label={ariaLabel}
+      onClick={handleClick}
       className="group relative block rounded-2xl shadow-xl overflow-hidden ring-1 ring-black/10 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-400/40 transition-transform duration-200 hover:-translate-y-0.5 md:hover:-translate-y-1"
     >
       <div className="relative w-full aspect-[3/4]">
