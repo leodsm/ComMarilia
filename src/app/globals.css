@@ -3,6 +3,13 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --brand-blue: #2563eb;
+  --brand-red: #dc2626;
+  --brand-orange: #ea580c;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --shadow-soft: 0 6px 20px rgba(0, 0, 0, 0.08);
+  --shadow-card: 0 12px 30px rgba(2, 6, 23, 0.12);
 }
 
 @theme inline {
@@ -17,5 +24,44 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu,
+    "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", sans-serif;
+}
+
+/* Visual tokens and small utilities (purely visuais) */
+::selection {
+  background: var(--brand-blue);
+  color: white;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Card base + skeleton shimmer */
+.card-base {
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+}
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+  transform: translateX(-100%);
+  animation: shimmer 2s infinite;
+}
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
 }
